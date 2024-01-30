@@ -6,41 +6,95 @@
 //
 
 import UIKit
+import Alamofire
+import SVProgressHUD
+import SwiftyJSON
 
 class TableViewController: UITableViewController {
 
+    var array = [WorldWonder]()
+    
+    var isLoading: Bool = false
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
-
+        
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem
+   
+        refreshControl = UIRefreshControl()
+        refreshControl?.addTarget(self, action: #selector(handleRefresh), for: .valueChanged)
+        
+        tableView.addSubview(refreshControl!)
+        
+        loadData()
     }
+    @objc func handleRefresh() {
+        if !isLoading {
+            isLoading = true
+            array.removeAll()
+            tableView.reloadData()
+            loadData()
+        }
+    }
+    
+        func loadData() {
+            
+            SVProgressHUD.show()
+            
+            AF.request("https://demo4694908.mockable.io/NEW", method: .get).responseJSON { response in
+                
+                SVProgressHUD.dismiss()
+                
+                self.isLoading = false
+                self.refreshControl?.endRefreshing()
+                
+                
+                if response.response?.statusCode == 200 {
+                    let json = JSON(response.value!)
+                    print(json)
+                    if let resultArray = json.array {
+                        for item in resultArray {
+                            let wonderItem = WorldWonder(json: item)
+                            self.array.append(wonderItem)
+                        }
+                        self.tableView.reloadData()
+                    }
+                }
+            }
+        }
+    
 
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
-        return 0
+        return 1
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return 0
+        return array.count
     }
 
-    /*
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath) as! WonderTableViewCell
+        
+        cell.setData(wonder: array[indexPath.row])
 
         // Configure the cell...
 
         return cell
     }
-    */
-
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 148
+    }
     /*
     // Override to support conditional editing of the table view.
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {

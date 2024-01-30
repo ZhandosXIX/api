@@ -6,9 +6,15 @@
 //
 
 import UIKit
+import SDWebImage
 
 class WonderTableViewCell: UITableViewCell {
-
+    
+    @IBOutlet weak var Picture: UIImageView!
+    @IBOutlet weak var Name: UILabel!
+    
+    @IBOutlet weak var Location: UILabel!
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
@@ -19,5 +25,10 @@ class WonderTableViewCell: UITableViewCell {
 
         // Configure the view for the selected state
     }
-
+    func setData(wonder: WorldWonder){
+        Name.text = wonder.Name
+        Location.text = wonder.Location
+        Picture.sd_setImage(with: URL(string: wonder.Picture), completed: nil)
+        
+    }
 }
